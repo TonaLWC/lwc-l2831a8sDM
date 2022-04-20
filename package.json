@@ -1,0 +1,7 @@
+{
+  "name": "@wcd/tonalwc.lwc-l2831a8s",
+  "version": "0.0.0",
+  "scripts": {
+    "serve": "npx wcd-cli@latest serve zog7grIJTNLigUoCcu8Z --open"
+  }
+}
