@@ -1,12 +1,35 @@
-h1 {
-    color: rgb(0, 112, 210);
+.example-accordion {
+  --sds-c-accordion-summary-color-background: rgb(243, 242, 242);
 }
-p {
-    font-family: 'Salesforce Sans', Arial, sans-serif;
-    color: rgb(62, 62, 60);
+.cardColor{
+--sds-c-card-color-background:rgb(236, 235, 234);
 }
-.app {
-    background-color: #fafaf9;
-    height: 100vh;
-    overflow: scroll;
+
+.colorCardGray{
+  --sds-c-card-color-background:#f3f2f2;
+}
+.colorCardWhite{
+  --sds-c-card-color-background:#fff;
+}
+
+.convenio {
+  position:sticky;
+  top:124px;
+  width: 100%;
+  background-color:rgb(236, 235, 234);
+  Z-index:1;
+  padding-top: 4px;
+  padding-bottom: 4px;
+  border-top-width: 0px;
+  border-bottom-width: 0px;
+}
+
+.outer {
+  width: 100%;
+  height: 100%;
+}
+
+.separtionItems{
+    padding-top: 1px;
+    padding-bottom: 1px;
 }
