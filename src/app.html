@@ -1,30 +1,617 @@
 <template>
-	<div class="app slds-p-around_x-large">
-		<h1 class="slds-text-heading_large">{title}</h1>
-		<h3>Write JavaScript, HTML, and CSS code, and preview the output in the interactive code editor.</h3>
-
-		<!-- Using an if statement -->
-		<template if:true={showFeatures}>
-			<div class="slds-p-top_large">
-				<h2 class="slds-text-heading_medium">Features</h2>
-
-				<!-- Using a for statement -->
-				<template for:each={features} for:item='feature'>
-					<c-child label={feature.label} key={feature.label}>
-
-						<!-- Specifying the 'icon' slot for c-child -->
-						<lightning-icon icon-name={feature.icon} size="x-small" slot="icon"></lightning-icon>
-					</c-child>
-				</template>
-			</div>
-		</template>
-
-		<h2 class="slds-text-heading_medium slds-p-top_large">Resources</h2>
-		<a
-			href="https://developer.salesforce.com/docs/component-library/documentation/en/lwc/lwc.get_started_introduction">
-			Developer Guide
-		</a><br/>
-		<a href="https://developer.salesforce.com/docs/component-library/overview/components">Component Reference</a>
-
-	</div>
+   <lightning-card class={setColorCard}>
+      <div class="slds-var-m-around_medium">
+         <template if:true={isLoadingSpinner}>
+            <div class="slds-var-p-around_x-large">
+               <lightning-spinner alternative-text="Loading" size="large" variant="brand"></lightning-spinner>
+            </div>
+         </template>
+         <template if:false={isCurrentCall}>
+            <template if:false={isUcontact}>
+               <c-executive-dashboard></c-executive-dashboard>
+            </template>
+            <div class="slds-align_absolute-center slds-var-m-top_xx-small">
+               <lightning-button label="Obtener datos del cliente" variant="brand" icon-name="utility:call" onclick={getManualCurrentCall}></lightning-button>
+            </div>
+         </template>
+         <template if:true={isCurrentCall}>
+            <template if:true={stepOne}>
+               <div class="slds-form" role="list">
+                  <div class="slds-form__row">
+                     <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                           <span class="slds-form-element__label">
+                           Número de cliente</span>
+                           <div class="slds-form-element__control">
+                              <div class="slds-form-element__static">
+                                 {callInfo.customer.CP_WalletCustomerNumber__c}
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                           <span class="slds-form-element__label">Nombre</span>
+                           <div class="slds-form-element__control">
+                              <div class="slds-form-element__static">
+                                 {callInfo.customer.Name}
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="slds-form__row">
+                     <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                           <span class="slds-form-element__label">
+                           Estado civil</span>
+                           <div class="slds-form-element__control">
+                              <div class="slds-form-element__static">
+                                 {callInfo.customer.CP_MaritalStatus__pc}
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                     <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                           <span class="slds-form-element__label">Sexo</span>
+                           <div class="slds-form-element__control">
+                              <div class="slds-form-element__static">
+                                 {callInfo.customer.CP_Gender__pc}
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  <div class="slds-form__row">
+                     <div class="slds-form__item" role="listitem">
+                        <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                           <span class="slds-form-element__label">
+                           Fecha alta</span>
+                           <div class="slds-form-element__control">
+                              <div class="slds-form-element__static">
+                                 <lightning-formatted-date-time
+                                    value={callInfo.customer.CP_CustomerSince__c}
+                                    day="2-digit"
+                                    month="2-digit"
+                                    year="numeric"
+                                    time-zone="UTC">
+                                 </lightning-formatted-date-time>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                  <lightning-layout multiple-rows>
+                     <lightning-layout-item size="12" small-device-size="6" medium-device-size="6" large-device-size="6" padding="around-small">
+                        <lightning-combobox
+                           name="whoAnsweredCmb"
+                           label="¿Quién contestó?"
+                           placeholder="Seleccione quien contestó la llamada"
+                           options={whoAnsweredData}
+                           onchange={whoAttends}
+                           class="classWhoAttendStep1"
+                           required>
+                        </lightning-combobox>
+                     </lightning-layout-item>
+                     <template if:true={isEndingCall}>
+                        <lightning-layout-item size="12" small-device-size="6" medium-device-size="6" large-device-size="6" padding="around-small">
+                           <lightning-combobox
+                              name="CmbEndCallStep1"
+                              label="Fin de llamada"
+                              placeholder="Seleccione un fin de llamada"
+                              options={endOfCallScreenOne}
+                              class="classEndOfCallStep1"
+                              onchange={onchangeEndOfCallStep1}
+                              required>
+                           </lightning-combobox>
+                        </lightning-layout-item>
+                        <template if:true={activeBestHours}>
+                           <lightning-layout-item size="12" small-device-size="6" medium-device-size="6" large-device-size="6" padding="around-small">
+                              <lightning-combobox
+                                 name="bestHoursStep1"
+                                 label="Mejor Hora Para Marcar"
+                                 placeholder="Seleccione una hora"
+                                 options={bestHoursValues.data.values}
+                                 class="classBestHourStep1"
+                                 onchange={onchangeBestHours}
+                                 required>
+                              </lightning-combobox>
+                           </lightning-layout-item>
+                        </template>
+                     </template>
+                  </lightning-layout>
+               </div>
+               <template if:true={stepOne}>
+                  <div class="slds-align_absolute-center">
+                     <lightning-button label={labelButtonStep1} variant="brand" icon-name="utility:call" onclick={onclickStepOne}></lightning-button>
+                  </div>
+               </template>
+            </template>
+            <!-- Inicia pantalla 2 desktop-->
+            <template if:true={stepTwo}>
+               <div class="outer">
+                  <div class="slds-box convenio">
+                     <lightning-card title="Nueva negociación" class="cardColor" icon-name="standard:account">
+                        <lightning-layout multiple-rows>
+                           <lightning-layout-item size="12" class="separtionItems" small-device-size="12" medium-device-size="12" large-device-size="12">
+                              <template if:true={hasOpenCasesCurrently}>
+                                 <lightning-icon icon-name="utility:alert" variant="warning" size="small" alternative-text="Quejas" title="Quejas"></lightning-icon>
+                                 &nbsp;&nbsp;El cliente tiene quejas abiertas.
+                              </template>
+                           </lightning-layout-item>
+                           <lightning-layout-item size="12" class="separtionItems" small-device-size="6" medium-device-size="3" large-device-size="3"  padding="around-small">
+                              <lightning-combobox
+                                 name="whoAnsweredCmb"
+                                 label="¿Quién contestó?"
+                                 value={whoAnsweredStep}
+                                 placeholder="Seleccione quien contestó la llamada"
+                                 options={whoAnsweredData}
+                                 onchange={whoAttendsStep2}
+                                 class="classWhoAnsweredStep2"
+                                 required
+                                 disabled>
+                              </lightning-combobox>
+                           </lightning-layout-item>
+                           <lightning-layout-item size="12" class="separtionItems" small-device-size="6" medium-device-size="3" large-device-size="3"  padding="around-small">
+                              <lightning-combobox
+                                 name="reasonNonComCmb"
+                                 label="¿Razón de incumplimiento?"
+                                 placeholder="Seleccione una razón"
+                                 options={reasonNonComplianceOptions}
+                                 onchange={onchangeReasonNonComp}
+                                 class="classReasonNonCumpl"
+                                 required>
+                              </lightning-combobox>
+                           </lightning-layout-item>
+                           <template if:true={activeInputOtros}>
+                              <lightning-layout-item size="12" small-device-size="6" class="separtionItems" medium-device-size="3" large-device-size="3"  padding="around-small">
+                                 <lightning-input type="text" required name="nameInputOtros" class="inputNameOtros" label="Otra Razón de incumplimiento"></lightning-input>
+                              </lightning-layout-item>
+                           </template>
+                           <lightning-layout-item size="12" small-device-size="6" class="separtionItems" medium-device-size="3" large-device-size="3" padding="around-small">
+                              <lightning-combobox
+                                 name="endofCallCmbSDsk"
+                                 label="Fin de llamada"
+                                 placeholder="Seleccione un fin de llamada"
+                                 options={endOfCallScreenTwo}
+                                 onchange={onchangeEndOfCallStep2}
+                                 class="classEndOfCallStep2"
+                                 required>
+                              </lightning-combobox>
+                           </lightning-layout-item>
+                           <template if:true={activeBestHours}>
+                              <lightning-layout-item size="12" small-device-size="6" class="separtionItems" medium-device-size="3" large-device-size="3" padding="around-small">
+                                 <lightning-combobox
+                                    name="bestHoursStep1"
+                                    label="Mejor Hora Para Marcar"
+                                    placeholder="Seleccione una hora"
+                                    options={bestHoursValues.data.values}
+                                    onchange={onchangeBestHours}
+                                    class="classBestHourStep2"
+                                    required>
+                                 </lightning-combobox>
+                              </lightning-layout-item>
+                           </template>
+                           <template if:true={existConvenioDesktop}>
+                              <lightning-layout-item size="12" small-device-size="6" class="separtionItems" medium-device-size="4" large-device-size="4" padding="around-small">
+                                 <lightning-input type="number" autocomplete="off" onchange={setPendiente}  required name="inputImporteDesktop" class="inputValueImporteDesktop" label="Importe" formatter="currency" step="0.01" min="1" max={maxValueAgreement} maxlength="10" message-when-range-overflow='Monto debe ser menor o igual al "usted debe"'></lightning-input>
+                              </lightning-layout-item>
+                              <lightning-layout-item size="12" small-device-size="6"  class="separtionItems" medium-device-size="4" large-device-size="4" padding="around-small">
+                                 <lightning-input type="date" autocomplete="off" required name="inputPlazoDesktop" class="inputValuePlazoDesktop" label="Plazo" max={maxPlazoAvailable} min={minPlazoAvailable}></lightning-input>
+                              </lightning-layout-item>
+                              <lightning-layout-item size="12" small-device-size="6" class="separtionItems" medium-device-size="4" large-device-size="4" padding="around-small">
+                                 <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                    <span class="slds-form-element__label">Pendiente</span>
+                                    <div class="slds-form-element__control">
+                                       <div class="slds-form-element__static">
+                                          <div class="slds-form-element__static">
+                                             <lightning-formatted-number value={pendingValue} format-style="currency" currency-code="MXN"></lightning-formatted-number>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </lightning-layout-item>
+                           </template>
+                           <lightning-layout-item size="12" small-device-size="6" class="separtionItems" medium-device-size="6" large-device-size="6" padding="around-small">
+                              <div class="slds-form__item" role="listitem">
+                                 <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                    <span class="slds-form-element__label">
+                                       Última observación</span>
+                                    <div class="slds-form-element__control">
+                                       <div class="slds-form-element__static">
+                                          <template if:true={lastObservation}> 
+                                           { lastObservation.Description}
+                                          </template>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </lightning-layout-item>
+                           <lightning-layout-item size="12" small-device-size="12" style="padding-bottom: 0px;" medium-device-size="12" large-device-size="12" padding="around-small">
+                              <lightning-button label="Continuar" class="slds-var-m-left_small" variant="brand" icon-name="utility:arrow_right" onclick={onclickStepTwo}></lightning-button>
+                           </lightning-layout-item>
+                        </lightning-layout>
+                     </lightning-card>
+                  </div>
+                  <lightning-layout multiple-rows>
+                     <lightning-layout-item size="12" small-device-size="12" medium-device-size="12" large-device-size="12" padding="around-small">
+                        <lightning-accordion class="example-accordion" allow-multiple-sections-open active-section-name={activeSectionsStep2}>
+                           <lightning-accordion-section name="A" label="1- Información confidencial del cliente">
+                              <div class="slds-form" role="list">
+                                 <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">
+                                          Teléfono contesto</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.call.telefonoreconstruido__c}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Número de cliente</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.CP_WalletCustomerNumber__c}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Nombre</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.Name}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Sexo</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.CP_Gender__pc}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Estado civil</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.CP_MaritalStatus__pc}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Edad</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.CP_AgeCalc__pc}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Ciudad del cliente</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                <template if:true={callInfo.customer.ShippingAddress}>
+                                                   {callInfo.customer.ShippingAddress.city}
+                                                </template>   
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Información</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                Cliente desde &nbsp;
+                                                <lightning-formatted-date-time
+                                                   value={callInfo.customer.CP_CustomerSince__c}
+                                                   day="2-digit"
+                                                   month="2-digit"
+                                                   year="numeric"
+                                                   time-zone="UTC">
+                                                </lightning-formatted-date-time>
+                                                &nbsp; - Salario &nbsp;
+                                                <lightning-formatted-number value={callInfo.customer.CP_MonthlyIncome__c} format-style="currency" currency-code="MXN"></lightning-formatted-number>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Domicilio</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                <template if:true={callInfo.customer.ShippingAddress}>
+                                                   {callInfo.customer.ShippingAddress.country},&nbsp;{callInfo.customer.ShippingAddress.state} &nbsp; {callInfo.customer.ShippingAddress.city}
+                                                </template>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                                 <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Trabajo</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.PersonTitle}
+                                                <template if:true={callInfo.customer.PersonOtherAddress}>
+                                                   &nbsp; EN &nbsp; {callInfo.customer.PersonOtherAddress.country},&nbsp;{callInfo.customer.PersonOtherAddress.state} &nbsp; {callInfo.customer.PersonOtherAddress.city}
+                                                </template>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">Referencia</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.CP_CustomerReference__pc}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </lightning-accordion-section>
+                           <lightning-accordion-section name="B" label="2- Puntualidad/eficiencia">
+                              <div class="slds-form" role="list">
+                                 <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">
+                                          Puntualidad histórica</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.CP_HistoricCustomerPunctuality__pc}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">
+                                          Puntualidad activa</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.CP_ActiveCustomerPunctuality__pc}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">
+                                          Eficiencia</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                {callInfo.customer.CP_Efficiency__c}
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </lightning-accordion-section>
+                           <lightning-accordion-section name="C" label="3- Información de último convenio">
+                              <div class="slds-form" role="list">
+                                 <div class="slds-form__row">
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">
+                                          Día</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                <template if:true={lastAgreement}>
+                                                   <lightning-formatted-date-time
+                                                      value={lastAgreement.CP_Date__c}
+                                                      day="2-digit"
+                                                      month="2-digit"
+                                                      year="numeric"
+                                                      time-zone="UTC">
+                                                   </lightning-formatted-date-time>
+                                                </template>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">
+                                          Área</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                <template if:true={lastAgreement}> 
+                                                   {lastAgreement.CP_Area__c}
+                                                </template>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">
+                                          Cantidad</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                <template if:true={lastAgreement}>
+                                                   <lightning-formatted-number value={lastAgreement.CP_Amount__c} format-style="currency" currency-code="MXN" minimum-fraction-digits="0"></lightning-formatted-number>
+                                                </template>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <div class="slds-form__item" role="listitem">
+                                       <div class="slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_stacked slds-hint-parent">
+                                          <span class="slds-form-element__label">
+                                          ¿Se cumplió?</span>
+                                          <div class="slds-form-element__control">
+                                             <div class="slds-form-element__static">
+                                                <template if:true={lastAgreement}>
+                                                   {lastAgreement.CP_Fulfilled__c}
+                                                </template>
+                                             </div>
+                                          </div>
+                                       </div>
+                                    </div>
+                                 </div>
+                              </div>
+                           </lightning-accordion-section>
+                           <lightning-accordion-section name="D" label="4- Información de crédito">
+                              <lightning-card>
+                                 <lightning-datatable
+                                    key-field="id"
+                                    data={dataCredit}
+                                    columns={columnsCredit}
+                                    hide-checkbox-column>
+                                 </lightning-datatable>
+                                 <div slot="footer">
+                                    <span class="slds-badge slds-theme_warning">
+                                       Usted debe:&nbsp;
+                                       <lightning-formatted-number value={callInfo.customer.CP_TotalDebt__c} format-style="currency" currency-code="MXN" minimum-fraction-digits="0"></lightning-formatted-number>
+                                    </span>
+                                    <span class="slds-badge slds-theme_warning">
+                                       Pague con:&nbsp;
+                                       <lightning-formatted-number value={callInfo.customer.CP_TotalPayWith__c} format-style="currency" currency-code="MXN" minimum-fraction-digits="0"></lightning-formatted-number>
+                                    </span>
+                                    <span class="slds-badge slds-theme_warning">
+                                       Abono mensual:&nbsp;
+                                       <lightning-formatted-number value={callInfo.customer.CP_TotalMonthlyPayment__c} format-style="currency" currency-code="MXN" minimum-fraction-digits="0"></lightning-formatted-number>
+                                    </span>
+                                    <span class="slds-badge slds-theme_warning">
+                                       Atraso:&nbsp;
+                                       <lightning-formatted-number value={callInfo.customer.CP_TotalDelay__c} format-style="currency" currency-code="MXN" minimum-fraction-digits="0"></lightning-formatted-number>
+                                    </span>
+                                    <span class="slds-badge slds-theme_warning">
+                                       Abonos vencidos:&nbsp;
+                                       <lightning-formatted-number value={callInfo.customer.CP_TotalPaymentDue__c}></lightning-formatted-number>
+                                    </span>
+                                    <span class="slds-badge slds-theme_warning">
+                                       Pase a pagar:&nbsp;
+                                       <lightning-formatted-number value={callInfo.customer.CP_TotalPassToPay__c} format-style="currency" currency-code="MXN" minimum-fraction-digits="0"></lightning-formatted-number>
+                                    </span>
+                                 </div>
+                              </lightning-card>
+                           </lightning-accordion-section>
+                           <lightning-accordion-section name="E" label="5- Historial de observaciones">
+                              <lightning-datatable
+                                 key-field="id"
+                                 data={dataTask}
+                                 columns={columnsTask}
+                                 hide-checkbox-column>
+                              </lightning-datatable>
+                           </lightning-accordion-section>
+                           <lightning-accordion-section name="F" label="6- Quejas en proceso">
+                              <lightning-datatable
+                                 key-field="id"
+                                 data={relatedInfo.relatedCases}
+                                 columns={columnsCases}
+                                 hide-checkbox-column>
+                              </lightning-datatable>
+                           </lightning-accordion-section>
+                        </lightning-accordion>
+                     </lightning-layout-item>
+                  </lightning-layout>
+               </div>
+            </template>
+            <template if:true={stepThree}>
+               <div class="slds-section slds-is-open">
+                  <h3 class="slds-section__title">
+                     <button aria-controls="expando-unique-id" aria-expanded="true" class="slds-button slds-section__title-action">
+                        <span class="slds-truncate" title="Section Title">Actualización de datos</span>
+                      </button>
+                  </h3>
+                  <div aria-hidden="false" class="slds-section__content" id="expando-unique-id">
+                     <table class="slds-table slds-table_bordered slds-border_left slds-border_right">
+                        <thead>
+                           <tr class="slds-line-height_reset">
+                              <th class="" scope="col">
+                                 <div class="slds-truncate" title="Name">Tipo</div>
+                              </th>
+                              <th class="" scope="col">
+                                 <div class="slds-truncate" title="Some Custom Column">Teléfono</div>
+                              </th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <tr class="slds-hint-parent">
+                              <td data-label="Tipo">
+                                 <template if:true={phoneTypesValues.data}>
+                                    <lightning-combobox name="phoneType1" variant="label-hidden" class="typePhone1"
+                                        options={phoneTypesValues.data.values}>
+                                    </lightning-combobox>
+                                </template>
+                              </td>
+                              <td data-label="Amount">
+                                 <lightning-input type="tel" name="phone1" variant="label-hidden" class="classPhone1" placeholder="Ingrese un número de teléfono" maxlength="10"></lightning-input>
+                              </td>
+                           </tr>
+                           <tr class="slds-hint-parent">
+                              <td data-label="Tipo">
+                                 <template if:true={phoneTypesValues.data}>
+                                    <lightning-combobox name="phoneType2" variant="label-hidden" class="typePhone2"
+                                        options={phoneTypesValues.data.values}>
+                                    </lightning-combobox>
+                                </template>
+                              </td>
+                              <td data-label="Amount">
+                                 <lightning-input type="tel" name="phone2" variant="label-hidden" class="classPhone2" placeholder="Ingrese un número de teléfono" maxlength="10"></lightning-input>
+                              </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                     <lightning-layout multiple-rows>
+                        <lightning-layout-item size="12" small-device-size="6" medium-device-size="6" large-device-size="6" padding="around-small">
+                           <lightning-input type="email" label="Email" class="classEmail"></lightning-input>
+                        </lightning-layout-item>
+                     </lightning-layout>
+                  </div>
+                </div>
+               <!-- Section 2 -->
+               <div class="slds-section slds-is-open">
+                  <h3 class="slds-section__title">
+                     <button aria-controls="capturaLibre" aria-expanded="true" class="slds-button slds-section__title-action">
+                        <span class="slds-truncate" title="Section Title">Observaciones</span>
+                      </button>
+                  </h3>
+                  <div aria-hidden="false" class="slds-section__content" id="capturaLibre">
+                     <lightning-layout multiple-rows>
+                        <lightning-layout-item size="12" small-device-size="6" medium-device-size="6" large-device-size="6" padding="around-small">
+                           <lightning-textarea label="Nueva Observación" maxlength="255" class="classNewObs"></lightning-textarea>
+                        </lightning-layout-item>
+                        <lightning-layout-item size="12" small-device-size="6" medium-device-size="6" large-device-size="6" padding="around-small">
+                           <lightning-input type="checkbox" label="Cliente tiene queja?" onchange={handleCheckBoxHasCase} variant="label-stacked"></lightning-input>
+                        </lightning-layout-item>
+                     </lightning-layout>
+                  </div>
+               </div>      
+               <div class="slds-align_absolute-center">
+                  <lightning-button label="Guardar y Colgar" variant="brand" icon-name="utility:end_call" onclick={onclickStepThree}></lightning-button>
+               </div>
+            </template>
+         </template>
+      </div >
+   </lightning-card>
 </template>
