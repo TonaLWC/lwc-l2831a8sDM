@@ -8,6 +8,7 @@ import {
 	getObjectInfo,
 	getPicklistValues
 } from 'lightning/uiObjectInfoApi';
+/*
 import CALL_LOCATOR_OBJECT from '@salesforce/schema/CP_CallLocator__c';
 import phoneTypeField from '@salesforce/schema/CP_CallLocator__c.tipotelefono__c';
 import bestHoursField from '@salesforce/schema/CP_CallLocator__c.CP_BestHourToCall__c';
@@ -18,6 +19,7 @@ import checkPlatformCache from '@salesforce/apex/InteractionHandlerController.ge
 import customerRelatedInfo from '@salesforce/apex/InteractionHandlerController.customerRelatedInfo';
 import updateContactInfo from '@salesforce/apex/InteractionHandlerController.updateContactData';
 import removeCache from '@salesforce/apex/InteractionHandlerController.removeKeyCache';
+*/
 import {
 	ShowToastEvent
 } from 'lightning/platformShowToastEvent';
