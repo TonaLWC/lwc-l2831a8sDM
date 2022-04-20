@@ -19,7 +19,6 @@ import checkPlatformCache from '@salesforce/apex/InteractionHandlerController.ge
 import customerRelatedInfo from '@salesforce/apex/InteractionHandlerController.customerRelatedInfo';
 import updateContactInfo from '@salesforce/apex/InteractionHandlerController.updateContactData';
 import removeCache from '@salesforce/apex/InteractionHandlerController.removeKeyCache';
-*/
 import {
 	ShowToastEvent
 } from 'lightning/platformShowToastEvent';
@@ -40,6 +39,7 @@ import createTaskStep2 from '@salesforce/apex/InteractionHandlerController.creat
 import newAgreement from '@salesforce/apex/InteractionHandlerController.newAgreement';
 import endCallWithException from '@salesforce/apex/InteractionHandlerController.endCallWithException';
 import messageNotResponding from '@salesforce/label/c.CP_MessageNotResponding';
+*/
 export default class InteractionHandler extends LightningElement {
 
 	messageNotResponding = messageNotResponding;
